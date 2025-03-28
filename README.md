@@ -1,8 +1,18 @@
-# cirsat
-A circuit-based Boolean satisfiability (SAT) solver
+# A circuit-based SAT solver (CirSAT)
+CirSAT is designed for Electronic Design Automation (EDA), based on the isomorphic logic network And Inverter Graph (AIG)
 
-Typical SAT solvers are based on conjunctive normal form (CNF) descriptions.
-Given a circuit represented by a directed acylic graph (DAG), such as
-AND-Inverter Graph (AIG) and Boolean chains, *cirsat* is based on DAG-based
-logic networks instead of CNF-based formats. The main motivation is to boost
-electronic desigon automation (EDA), especially for applications in logic synthesis.
+## Requirements
+A modern compiler is required to build the libraries. 
+Compiled successfully with Clang 6.0.1, Clang 12.0.0, GCC 7.3.0, and GCC 8.2.0. 
+More information can be found in the [documentation](https://cirsat.readthedocs.io/en/latest/)
+
+## How to Compile
+```bash
+git clone --recursive https://gitee.com/hukunmei/CirSAT.git 
+cd CirSAT
+mkdir build
+cd build
+cmake ..
+make
+./cirsat
+```

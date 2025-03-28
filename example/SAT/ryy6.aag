@@ -1,0 +1,55 @@
+aag 32 16 0 1 16
+2
+4
+6
+8
+10
+12
+14
+16
+18
+20
+22
+24
+26
+28
+30
+32
+64
+34 24 22
+36 18 16
+38 37 35
+40 39 20
+42 41 5
+44 43 6
+46 28 26
+48 32 30
+50 48 46
+52 4 2
+54 14 12
+56 10 8
+58 55 53
+60 58 57
+62 60 51
+64 62 45
+i0 v0
+i1 v1
+i2 v2
+i3 v3
+i4 v4
+i5 v5
+i6 v6
+i7 v7
+i8 v8
+i9 v9
+i10 v10
+i11 v11
+i12 v12
+i13 v13
+i14 v14
+i15 v15
+o0 v16.0
+c
+source.pla
+This file was written by ABC on Fri Jul 28 15:44:06 2017
+For information about AIGER format, refer to http://fmv.jku.at/aiger
