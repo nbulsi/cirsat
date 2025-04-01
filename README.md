@@ -1,5 +1,6 @@
 # cirsat
 A circuit-based Boolean satisfiability (SAT) solver
+[Read the full documentation.](https://cirsat-tool.readthedocs.io/en/latest/)
 
 Typical SAT solvers are based on conjunctive normal form (CNF) descriptions.
 Given a circuit represented by a directed acylic graph (DAG), such as
