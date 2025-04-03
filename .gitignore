@@ -1,5 +1,8 @@
 #tags
 tags
+.tags
+.tags*
+TAGS
 
 # Prerequisites
 *.d
