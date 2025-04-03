@@ -1,0 +1,38 @@
+---
+Language: Cpp
+BasedOnStyle: LLVM
+IndentWidth: 4
+ColumnLimit: 120
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction: true      
+  AfterClass: true        
+  AfterNamespace: false   
+  AfterControlStatement: false
+  BeforeCatch: false     
+  BeforeElse: false
+
+AlignAfterOpenBracket: Align
+PointerAlignment: Left
+SpaceBeforeParens: ControlStatements
+NamespaceIndentation: None
+
+AlignAfterOpenBracket: Align
+AlignOperands: true
+AlignTrailingComments: true
+
+AllowShortFunctionsOnASingleLine: Empty
+BreakBeforeBraces: Linux
+BreakConstructorInitializers: BeforeColon
+
+SpaceAfterCStyleCast: false
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyParentheses: false
+SpacesInParentheses: false
+
+PointerAlignment: Left
+SortIncludes: true
+FixNamespaceComments: true
+MaxEmptyLinesToKeep: 1
+...
