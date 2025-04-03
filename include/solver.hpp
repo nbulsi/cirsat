@@ -7,20 +7,22 @@
 #ifndef CIRSAT_SOLVER_HPP
 #define CIRSAT_SOLVER_HPP
 
-#include <vector>
 #include <string>
+#include <vector>
 
-namespace cirsat {
+namespace cirsat
+{
 
-class Solver {
-public:
+class Solver
+{
+  public:
     Solver();
     ~Solver();
 
     bool solve(const std::vector<bool>& circuit);
     void addGate(const std::string& type, int input1, int input2);
 
-private:
+  private:
     struct Impl;
     Impl* pimpl;
 };

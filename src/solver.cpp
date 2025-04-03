@@ -6,7 +6,8 @@
 
 #include "solver.hpp"
 
-namespace cirsat {
+namespace cirsat
+{
 
 struct Solver::Impl {
     // 具体实现细节
@@ -14,16 +15,19 @@ struct Solver::Impl {
 
 Solver::Solver() : pimpl(new Impl()) {}
 
-Solver::~Solver() {
+Solver::~Solver()
+{
     delete pimpl;
 }
 
-bool Solver::solve(const std::vector<bool>& circuit) {
+bool Solver::solve(const std::vector<bool>& circuit)
+{
     // 实现求解逻辑
     return true;
 }
 
-void Solver::addGate(const std::string& type, int input1, int input2) {
+void Solver::addGate(const std::string& type, int input1, int input2)
+{
     // 实现添加门的逻辑
 }
 
