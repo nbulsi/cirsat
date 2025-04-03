@@ -24,4 +24,8 @@ cd build
 # Configure and build
 cmake ..
 make
+
+# Enable test
+cmake -DBUILD_TESTING=ON ..
+make
 ```
