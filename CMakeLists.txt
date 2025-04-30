@@ -9,6 +9,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 add_subdirectory(src)
 add_subdirectory(examples)
 
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 option(BUILD_TESTING "Build the testing tree." OFF)
 
 if(BUILD_TESTING)
