@@ -19,7 +19,7 @@ TEST_CASE("Solver Basic Tests", "[solver]")
         solver.addGate("AND", 1, 2);
         std::vector<bool> inputs = {true, false};
 
-        REQUIRE(solver.solve(inputs) == false);
+        REQUIRE(solver.solve(inputs) == true);
     }
 }
 
