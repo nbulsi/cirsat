@@ -1,10 +1,12 @@
 /**
  * @file aiger_reader.hpp
  * @brief Template-based Parser of AIG
+ * @author Haonan Wei, Zhufei Chu 
  */
+
 #include "aig.hpp"
-//#include "../lib/lorina/lorina/aiger.hpp"
 #include <lorina/aiger.hpp>
+
 #ifndef CIRSAT_AIGER_READER_HPP
 #define CIRSAT_AIGER_READER_HPP
 
@@ -32,11 +34,12 @@ template <typename Ntk> class aiger_reader : public lorina::aiger_reader
                    uint64_t num_ands) const override
     {
         assert(num_latches == 0 && "This solver does not support latches");
-        std::cout << "num_inputs = " << num_inputs << std::endl;
+        
         _ntk.set_num_pis(static_cast<uint32_t>(num_inputs));
         _ntk.set_num_pos(static_cast<uint32_t>(num_outputs));
         _ntk.set_num_gates(static_cast<uint32_t>(num_ands));
         _ntk.add_gate(gate(0));
+
         /* create primary inputs (pi) */
         for (auto i = 0u; i < num_inputs; ++i) {
             _ntk.create_pi();

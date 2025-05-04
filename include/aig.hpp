@@ -4,20 +4,9 @@
 #include <array>
 #include <cassert>
 #include <cstdint>
-#include <deque>
-#include <fstream>
-#include <iostream>
-#include <limits>
-#include <set>
-#include <sstream>
-#include <string>
-#include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #define NULL_INDEX 0xffffffff
-#define HAVE_INV 0xfffffffe
-#define HAVE_NO_INV 0xfffffffd
 
 namespace cirsat
 {
@@ -77,7 +66,7 @@ struct gate {
 
 class aig_ntk
 {
-  public:
+public:
     aig_ntk() = default;
 
     void create_pi()
@@ -172,8 +161,12 @@ class aig_ntk
     {
         return m_num_gates;
     }
+    uint32_t get_aig_size() const
+    {
+        return m_num_gates + m_num_pis + m_num_pos;
+    }
 
-  private:
+private:
     std::vector<gate> m_gates;
     std::vector<GateId> m_inputs;
     std::vector<GateId> m_outputs;
