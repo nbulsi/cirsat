@@ -10,7 +10,7 @@ if (NOT TARGET range)
 endif()
 
 if (NOT TARGET lorina)
-  add_library(lorina INTERFACE) # v0.1
+  add_library(lorina INTERFACE)
   target_include_directories(lorina SYSTEM INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/lorina)
   target_link_libraries(lorina INTERFACE rang fmt)
 endif()

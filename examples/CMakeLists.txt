@@ -1,8 +1,11 @@
-file(GLOB_RECURSE EXAMPLE_SOURCES "*.cpp")
+file(GLOB FILENAMES *.cpp)
 
-foreach(example_source ${EXAMPLE_SOURCES})
-    get_filename_component(example_name ${example_source} NAME_WE)
-    add_executable(${example_name} ${example_source})
-    # 修改库名为 cirsat_lib
-    target_link_libraries(${example_name} PRIVATE cirsat_lib)
+foreach(filename ${FILENAMES})
+  get_filename_component(basename ${filename} NAME_WE)
+  add_executable(${basename} ${filename})
+  target_link_libraries(${basename} PUBLIC cirsat_lib)
+
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${basename}.cmake")
+    include(${basename}.cmake)
+  endif()
 endforeach()

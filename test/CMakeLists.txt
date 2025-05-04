@@ -11,7 +11,8 @@ file(GLOB_RECURSE FILENAMES
 message(STATUS "Collected test files: ${FILENAMES}")
 
 add_executable(run_tests ${FILENAMES})
-target_link_libraries(run_tests PUBLIC cirsat_lib)
+target_link_libraries(run_tests PUBLIC cirsat_lib fmt lorina)
+
 if (ENABLE_COVERAGE)
   target_link_libraries(run_tests PUBLIC gcov)
 endif()
