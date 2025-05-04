@@ -1,10 +1,10 @@
 /**
  * @file aiger_reader.hpp
- * @brief Template-based Parser of AIG (使用 get_gates() 等函数替代直接访问 m_gates)
+ * @brief Template-based Parser of AIG 
  */
-#include "./aig.hpp"
-#include <../lib/lorina/lorina/aiger.hpp>
-
+#include "aig.hpp"
+//#include "../lib/lorina/lorina/aiger.hpp"
+#include <lorina/aiger.hpp>
 #ifndef CIRSAT_AIGER_READER_HPP
 #define CIRSAT_AIGER_READER_HPP
 
@@ -18,43 +18,11 @@ public:
         : _ntk(ntk) {}
     ~aiger_reader()
     {
-        // // Print gates and parameters for debugging
-        // std::cout << "gates in _ntk.get_gates(): " << std::endl;
-        // for (size_t i = 0; i < _ntk.get_gates().size(); ++i) // 使用 get_gates() 替代直接访问 m_gates
-        // {
-        //     const auto& gate = _ntk.get_gates()[i]; // 使用 get_gates()
-        //     std::cout << "Node " << i << ": " << std::endl;
-        //     std::cout << "  Data: " << gate.data << std::endl;
-
-        //     // 打印每个节点的 children 信息
-        //     std::cout << "  Children: ";
-        //     for (const auto& child : gate.children)
-        //     {
-        //         std::cout << child << " ";
-        //     }
-        //     std::cout << std::endl;
-
-        //     std::cout << "  Info:" << std::endl;
-        //     std::cout << "    Fanouts: " << static_cast<int>(gate.info[0]) << std::endl;
-        //     std::cout << "    Visited: " << static_cast<int>(gate.info[1]) << std::endl;
-        //     for (const auto& output : gate.outputs)
-        //     {
-        //         std::cout << "    Output: " << output << std::endl;
-        //     }
-        // }
-
-        // std::cout << "Outputs: ";
-        // for (const auto& out : outputs)
-        // {
-        //     std::cout << "(" << std::get<0>(out) << ", " << std::get<1>(out) << ") ";
-        // }
-        // std::cout << std::endl;
-
         uint32_t output_id{0};
         for (auto out : outputs)
         {
             auto const lit = std::get<0>(out);
-            auto gate = _ntk.get_gates()[lit >> 1]; // 使用 get_gates() 替代直接访问 m_gates
+            auto gate = _ntk.get_gates()[lit >> 1]; 
             if (lit & 1)
             {
                 gate = _ntk.create_not(gate);
@@ -81,15 +49,15 @@ public:
     void on_and(unsigned index, unsigned left_lit, unsigned right_lit) const override
     {
         (void)index;
-        assert(_ntk.get_gates().size() == index); // 使用 get_gates()
+        assert(_ntk.get_gates().size() == index);
 
-        auto left = _ntk.get_gates()[left_lit >> 1]; // 使用 get_gates()
+        auto left = _ntk.get_gates()[left_lit >> 1];
         if (left_lit & 1)
         {
             left = _ntk.create_not(left);
         }
 
-        auto right = _ntk.get_gates()[right_lit >> 1]; // 使用 get_gates()
+        auto right = _ntk.get_gates()[right_lit >> 1];
         if (right_lit & 1)
         {
             right = _ntk.create_not(right);
@@ -101,7 +69,7 @@ public:
     void on_output(unsigned index, unsigned lit) const override
     {
         (void)index;
-        assert(index == _ntk.get_outputs().size()); // 使用 get_outputs()
+        assert(index == _ntk.get_outputs().size());
         outputs.emplace_back(lit, "");
     }
 
