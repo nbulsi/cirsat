@@ -24,9 +24,13 @@
  */
 
 #include "solver.hpp"
+#include "aig.hpp"
+#include "aig_dpll_solver.hpp"
+#include "aiger_reader.hpp"
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <fstream>
 
 void printUsage()
 {
@@ -67,7 +71,6 @@ int main(int argc, char* argv[])
         }
 
         bool verbose = false;
-        // Check for verbose option
         for (int i = 3; i < argc; i++) {
             std::string option = argv[i];
             if (option == "--verbose") {
@@ -75,13 +78,43 @@ int main(int argc, char* argv[])
             }
         }
 
-        cirsat::Solver solver;
         if (verbose) {
             std::cout << "Processing circuit file: " << argv[2] << std::endl;
         }
 
-        // Add solving logic here
-        std::cout << "Solving circuit from file: " << argv[2] << std::endl;
+        // read aiger file and construct aig_ntk network
+        cirsat::aig_ntk network;
+        cirsat::aiger_reader<cirsat::aig_ntk> reader(network);
+        
+        std::ifstream file(argv[2]);
+        if (!file.is_open()) {
+            std::cout << "Error: Cannot open file " << argv[2] << std::endl;
+            return 1;
+        }
+
+        auto result = lorina::read_aiger(file, reader);
+        file.close();
+
+        if (result != lorina::return_code::success) {
+            std::cout << "Error: Failed to parse AIGER file" << std::endl;
+            return 1;
+        }
+
+        // solve aig_ntk network
+        auto [is_sat, solution] = cirsat::solve_aig(network);
+        
+        if (is_sat) {
+            std::cout << "SAT\n";
+            if (verbose && solution) {
+                std::cout << "Solution:\n";
+                for (size_t i = 0; i < solution->size(); ++i) {
+                    std::cout << "Input " << i << ": " << ((*solution)[i] ? "1" : "0") << "\n";
+                }
+            }
+        } else {
+            std::cout << "UNSAT\n";
+        }
+
         return 0;
     }
 
