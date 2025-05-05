@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cstdint>
 #include <vector>
+#include <iostream>
 
 #define NULL_INDEX 0xffffffff
 
@@ -153,19 +154,27 @@ public:
     {
         return m_num_pis;
     }
+    
     uint32_t get_num_pos() const
     {
         return m_num_pos;
     }
+
     uint32_t get_num_gates() const
     {
         return m_num_gates;
     }
-    uint32_t get_aig_size() const
+
+    static GateId data_to_index(uint32_t data) 
     {
-        return m_num_gates + m_num_pis + m_num_pos;
+        return data >> 1;
     }
 
+    static bool data_to_complement(uint32_t data)
+    {
+        return data & 1;
+    }
+    
 private:
     std::vector<gate> m_gates;
     std::vector<GateId> m_inputs;

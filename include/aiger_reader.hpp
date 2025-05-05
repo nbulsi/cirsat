@@ -1,7 +1,8 @@
 /**
  * @file aiger_reader.hpp
  * @brief Template-based Parser of AIG
- * @author Haonan Wei, Zhufei Chu 
+ * @author Haonan Wei
+ * @author Zhufei Chu 
  */
 
 #include "aig.hpp"
