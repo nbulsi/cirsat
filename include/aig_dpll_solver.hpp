@@ -46,7 +46,7 @@ class aig_dpll_solver {
         }
     
         // Evaluate node value recursively
-        bool evaluate_node(GateId id) {
+        bool evaluate_node(GateId id, uint32_t complement = 0) {
             if (m_assigned[id]) return m_values[id];
     
             const auto& node = m_ntk.get_gates()[id];
@@ -63,8 +63,12 @@ class aig_dpll_solver {
             // Handle complemented edges
             if (m_ntk.data_to_complement(node.children[0])) lhs_val = !lhs_val;
             if (m_ntk.data_to_complement(node.children[1])) rhs_val = !rhs_val;
-            
-            m_values[id] = lhs_val & rhs_val;
+            // Check complement and assign value
+            if (complement == 1) {
+                m_values[id] = !(lhs_val & rhs_val); 
+            } else {
+                m_values[id] = lhs_val & rhs_val; 
+            }
             m_assigned[id] = true;
             return m_values[id];
         }
@@ -80,7 +84,7 @@ class aig_dpll_solver {
                 
                 // Check all outputs
                 for (GateId out_id : m_ntk.get_outputs()) {
-                    bool out_val = evaluate_node(out_id);
+                    bool out_val = evaluate_node(out_id >> 1, out_id & 1);
                     if (!out_val) return false;
                 }
                 return true;
