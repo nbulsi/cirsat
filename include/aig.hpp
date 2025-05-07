@@ -82,7 +82,7 @@ public:
     void create_po(const gate& s)
     {
         m_gates[s.index].info[0]++;
-        m_outputs.push_back(s.index);
+        m_outputs.push_back(s.data);
     }
 
     void create_and(const gate& a, const gate& b)
@@ -114,7 +114,7 @@ public:
     {
         return !a;
     }
-
+    
     const std::vector<GateId>& get_inputs() const
     {
         return m_inputs;

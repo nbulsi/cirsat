@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
             std::cout << "Error: Failed to parse AIGER file" << std::endl;
             return 1;
         }
-
+        
         // solve aig_ntk network
         auto [is_sat, solution] = cirsat::solve_aig(network);
         

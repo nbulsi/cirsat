@@ -18,9 +18,20 @@ template <typename Ntk> class aiger_reader : public lorina::aiger_reader
 {
   public:
     explicit aiger_reader(Ntk& ntk) : _ntk(ntk) {}
-    ~aiger_reader()
-    {
-        uint32_t output_id{0};
+    // ~aiger_reader()
+    // {
+    //     uint32_t output_id{0};
+    //     for (auto out : outputs) {
+    //         auto const lit = std::get<0>(out);
+    //         auto gate = _ntk.get_gates()[lit >> 1];
+    //         if (lit & 1) {
+    //             gate = _ntk.create_not(gate);
+    //         }
+    //         _ntk.create_po(gate);
+    //         //printf("output size %ld\n", _ntk.get_outputs().size());
+    //     }
+    // }
+    void process_outputs() const {
         for (auto out : outputs) {
             auto const lit = std::get<0>(out);
             auto gate = _ntk.get_gates()[lit >> 1];
@@ -63,12 +74,15 @@ template <typename Ntk> class aiger_reader : public lorina::aiger_reader
         }
 
         _ntk.create_and(left, right);
+        if (_ntk.get_gates().size() == _ntk.get_num_gates()+_ntk.get_num_pis() + 1) {
+            process_outputs();
+        }
     }
 
     void on_output(unsigned index, unsigned lit) const override
     {
         (void)index;
-        assert(index == _ntk.get_outputs().size());
+        
         outputs.emplace_back(lit, "");
     }
 
