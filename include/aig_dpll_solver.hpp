@@ -10,6 +10,8 @@
 #include "aig.hpp"
 #include <vector>
 #include <optional>
+#include <algorithm>
+
 
 namespace cirsat {
 
@@ -24,7 +26,7 @@ class aig_dpll_solver {
         std::vector<bool> m_assigned;
         std::vector<GateId> trail_node; 
         std::vector<size_t> node_level;
-
+        std::vector<GateId> sorted_inputs;
     
     public:
         explicit aig_dpll_solver(const aig_ntk& ntk) 
@@ -37,12 +39,15 @@ class aig_dpll_solver {
             std::fill(m_assigned.begin(), m_assigned.end(), false);
         }
     
-        // Assign value to input node
-        void assign_input(GateId id, bool val) {
-            m_values[id] = val;
-            m_assigned[id] = true;
+        void sort_inputs() {
+            sorted_inputs = m_ntk.get_inputs();
+            std::sort(sorted_inputs.begin(), sorted_inputs.end(), [this](GateId a, GateId b) {
+                gate g_a = m_ntk.get_gates()[a];
+                gate g_b = m_ntk.get_gates()[b];
+                return g_a.outputs.size() > g_b.outputs.size();
+            });
         }
-        
+
         void assign_node(GateId id, bool val) {
             if (m_assigned[id]) return; 
             m_values[id] = val;
@@ -65,6 +70,35 @@ class aig_dpll_solver {
             }
         }
         
+        bool po_first(){
+            for(auto out:m_ntk.get_outputs()){
+                GateId out_id = m_ntk.data_to_index(out);
+                bool out_comp =m_ntk.data_to_complement(out);
+                bool out_val =!out_comp;
+                assign_node(out_id,out_val);
+                if(!forward_bcp(out_id)) return false;
+            }
+            return true;
+        }
+        bool forward_bcp(GateId id){
+            const auto& n = m_ntk.get_gates()[id];
+            if(m_values[id]){
+                for (int i = 0; i < 2; ++i) {
+                    auto child = n.children[i];
+                    GateId child_id = m_ntk.data_to_index(child);
+                    bool child_compl = m_ntk.data_to_complement(child);
+                    bool child_val = !child_compl;
+    
+                    if (m_assigned[child_id]) {
+                        if (m_values[child_id] != child_val) return false;
+                    } else {
+                        assign_node(child_id, child_val);
+                        if (!forward_bcp(child_id)) return false;
+                    }
+                }    
+            }
+            return true;
+        }
         //bcp
         void bcp(GateId id){
             const auto& n = m_ntk.get_gates()[id];
@@ -73,20 +107,20 @@ class aig_dpll_solver {
                 if(m_assigned[out_id]) continue;
                 GateId left_node = m_ntk.data_to_index(out.children[0]);
                 GateId right_node = m_ntk.data_to_index(out.children[1]);
-                if(m_assigned[left_node] && m_assigned[right_node]){
-                    bool left_val , right_val;
-                    if(m_ntk.data_to_complement(out.children[0])==1){
-                        left_val = !m_values[left_node];
-                    }
-                    else{
-                        left_val = m_values[left_node];
-                    }
-                    if(m_ntk.data_to_complement(out.children[1])==1){
-                        right_val = !m_values[right_node];
-                    }
-                    else{
-                        right_val = m_values[right_node];
-                    }
+                bool left_comp = m_ntk.data_to_complement(out.children[0]);
+                bool right_comp = m_ntk.data_to_complement(out.children[1]);
+                bool left_val , right_val;
+                if(m_assigned[left_node]){
+                    left_val = left_comp ? !m_values[left_node] : m_values[left_node];
+                }
+                if(m_assigned[right_node]){
+                    right_val = right_comp ? !m_values[right_node] : m_values[right_node];
+                }
+                if((m_assigned[left_node]&&!left_val) || (m_assigned[right_node]&&!right_val)){
+                    assign_node(out_id, false);
+                    //std::cout<<"assign false:"<<out_id<<std::endl;
+                    bcp(out_id);
+                }else if(m_assigned[left_node] && m_assigned[right_node]){
                     bool out_val = left_val & right_val;
                     assign_node(out_id,out_val);
                     bcp(out_id);
@@ -96,34 +130,72 @@ class aig_dpll_solver {
         
         // Recursive search for satisfying assignment
         bool search(size_t input_idx, std::vector<bool>& input_vals) {
-            const auto& inputs = m_ntk.get_inputs();
-            if (input_idx == inputs.size()) return false;
+            const auto& inputs = sorted_inputs;
+            if (input_idx == 0) {
+                for (size_t i = 0; i < inputs.size(); ++i) {
+                }
+                std::cout << std::endl;
+            }
+            if (input_idx == inputs.size()){
+                return false;} 
             // Try both possible input values
             for (bool val : {false, true}) {
-                node_level.push_back(trail_node.size());
+
                 GateId input_id = inputs[input_idx];
-                input_vals[input_idx] = val;
+                if (m_assigned[input_id]) {
+                    if (m_values[input_id] == val) {
+                        if (search(input_idx + 1, input_vals)) return true;
+                    }
+                    continue;
+                }
+                node_level.push_back(trail_node.size());
+                input_vals[input_id-1] = val;
                 assign_node(input_id, val);
                 bcp(input_id);
-                auto out_data=m_ntk.get_outputs()[0];
-                if(m_assigned[m_ntk.data_to_index(out_data)]){
-                    if((m_ntk.data_to_complement(out_data)==0)&&m_values[m_ntk.data_to_index(out_data)]) {return true;}
-                    else if((m_ntk.data_to_complement(out_data)==1)&&!m_values[m_ntk.data_to_index(out_data)]) {return true;}
-                    else {
-                        backtrack();
+                bool all_po_assigned = true;
+                bool all_po_true = true;
+        
+                for (auto out_data : m_ntk.get_outputs()) {
+                    GateId out_id = m_ntk.data_to_index(out_data);
+                    bool out_compl = m_ntk.data_to_complement(out_data);
+                    bool expected_val = !out_compl;
+        
+                    if (!m_assigned[out_id]) {
+                        all_po_assigned = false;
+                        break;
+                    }
+        
+                    if (m_values[out_id] != expected_val) {
+                        all_po_true = false;
+                    }
+                }
+        
+                if (all_po_assigned) {
+                    if (all_po_true) {
+                        return true;
+                    } else {
+                        backtrack(); 
                         continue;
                     }
                 }
+           
+   
                 if (search(input_idx + 1, input_vals)) return true;
 
                 backtrack();
             }
+
             return false;
         }
     
         // Main SAT solving function
         bool solve(std::vector<bool>& solution) {
             solution.resize(m_ntk.get_inputs().size());
+            if(!po_first()){
+                return false;
+            }   
+            clear_assignments(); 
+            sort_inputs();
             return search(0, solution);
         }
     };
