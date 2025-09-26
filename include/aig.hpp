@@ -6,6 +6,8 @@
 #include <cstdint>
 #include <vector>
 #include <iostream>
+#include <unordered_map>
+#include <unordered_set>
 
 #define NULL_INDEX 0xffffffff
 
@@ -15,11 +17,21 @@ namespace cirsat
 enum class GateType { AND, OR, NOT, NAND, NOR, XOR, XNOR, BUF, MUX, UNKNOWN };
 
 using GateId = uint32_t;
+using Direct_ImplicationTable = std::unordered_map<GateId, std::array<std::vector<std::pair<GateId, bool>>, 2>>;
+using Indirect_ImplicationTable = std::array<std::vector<std::vector<GateId>>, 2>;
+constexpr uint32_t INVALID_GATE = std::numeric_limits<uint32_t>::max();
+struct Watch_Values{
+    bool input1;
+    bool input2;
+    bool output;
+};
+
 struct gate {
     GateType type = GateType::AND;
     std::array<uint8_t, 2u> info{0, 0}; // [0]--number of fanouts; [1]--visited flag
     std::array<GateId, 2u> children{NULL_INDEX, NULL_INDEX};
     std::vector<GateId> outputs;
+    float activity = 0.0f;
 
     union {
         struct {
@@ -175,6 +187,53 @@ public:
         return data & 1;
     }
     
+    void build_implication_table(Direct_ImplicationTable& ditable,Indirect_ImplicationTable& iitable, std::unordered_map<GateId, Watch_Values>& watch_vals) const {
+        size_t num_gates = m_gates.size();
+        for (int val = 0; val < 2; val++) {
+            iitable[val].resize(num_gates);
+        }
+        for (GateId id = m_inputs.size()+1; id < m_gates.size(); ++id) {
+            const gate& g = m_gates[id];            
+            GateId a = data_to_index(g.children[0]);
+            GateId b = data_to_index(g.children[1]);
+            bool a_neg = data_to_complement(g.children[0]);
+            bool b_neg = data_to_complement(g.children[1]);
+            watch_vals[id].input1 = !a_neg;
+            watch_vals[id].input2 = !b_neg;
+            watch_vals[id].output = false;
+
+            bool is_output = false;
+            GateId po_data;
+            // for (const auto& po : m_outputs) {
+            //     if (data_to_index(po) == id) {
+            //         is_output = true;
+            //         po_data = po;
+            //         break;
+            //     }
+            // }
+            // if (is_output) {
+            //     bool z_neg = data_to_complement(po_data);
+            //     watch_vals[id].output = z_neg;
+            // }
+            bool a_wv = watch_vals[id].input1;
+            bool b_wv = watch_vals[id].input2;
+            bool id_wv = watch_vals[id].output;
+            // if a/b==0, then z = 0
+            ditable[a][!a_wv].emplace_back(id, id_wv);
+            ditable[b][!b_wv].emplace_back(id, id_wv);
+            // if z==1, then a==1&b==1
+            ditable[id][!id_wv].emplace_back(a, a_wv);
+            ditable[id][!id_wv].emplace_back(b, b_wv);
+
+            // if a==1&&b==1, then z==1,is not here, indirect_implication
+
+            iitable[a_wv][a].push_back(id);
+            iitable[b_wv][b].push_back(id);
+            iitable[id_wv][id].push_back(id);
+
+        }
+    }
+
 private:
     std::vector<gate> m_gates;
     std::vector<GateId> m_inputs;
