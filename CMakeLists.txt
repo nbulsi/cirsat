@@ -27,4 +27,4 @@ endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 add_executable(cirsat cirsat.cpp)
-target_link_libraries(cirsat PUBLIC cirsat_lib)
+target_link_libraries(cirsat PUBLIC cirsat_lib lorina)
