@@ -204,17 +204,7 @@ public:
 
             bool is_output = false;
             GateId po_data;
-            // for (const auto& po : m_outputs) {
-            //     if (data_to_index(po) == id) {
-            //         is_output = true;
-            //         po_data = po;
-            //         break;
-            //     }
-            // }
-            // if (is_output) {
-            //     bool z_neg = data_to_complement(po_data);
-            //     watch_vals[id].output = z_neg;
-            // }
+
             bool a_wv = watch_vals[id].input1;
             bool b_wv = watch_vals[id].input2;
             bool id_wv = watch_vals[id].output;
@@ -225,7 +215,7 @@ public:
             ditable[id][!id_wv].emplace_back(a, a_wv);
             ditable[id][!id_wv].emplace_back(b, b_wv);
 
-            // if a==1&&b==1, then z==1,is not here, indirect_implication
+            //indirect_implication
 
             iitable[a_wv][a].push_back(id);
             iitable[b_wv][b].push_back(id);
