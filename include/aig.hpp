@@ -31,6 +31,7 @@ struct gate {
     std::array<uint8_t, 2u> info{0, 0}; // [0]--number of fanouts; [1]--visited flag
     std::array<GateId, 2u> children{NULL_INDEX, NULL_INDEX};
     std::vector<GateId> outputs;
+    std::vector<GateId> fanins; 
     float activity = 0.0f;
 
     union {
@@ -187,6 +188,45 @@ public:
         return data & 1;
     }
     
+    GateId create_or_learning_gate(const std::vector<GateId>& inputs,const std::vector<bool>& watched_values,Indirect_ImplicationTable& iitable,std::unordered_map<GateId, std::vector<bool>>& learn_watch_vals)
+    {
+        assert(!inputs.empty());
+        assert(inputs.size() == watched_values.size());
+        gate node;
+        node.type = GateType::OR;
+
+        GateId new_id = m_gates.size();
+        node.index = new_id;
+        node.complement = 0;
+
+        node.children[0] = inputs[0];
+        node.children[1] = inputs.size() > 1 ? inputs[1] : inputs[0];
+
+        node.fanins = inputs;
+
+        for (GateId in : inputs)
+        {
+            m_gates[in].outputs.push_back(new_id);
+            m_gates[in].info[0]++;
+        }
+
+        m_gates.push_back(node);
+
+        std::vector<bool> wv(inputs.size());
+        for (size_t i = 0; i < inputs.size(); i++)
+            wv[i] = watched_values[i];  
+        learn_watch_vals[new_id] = std::move(wv);
+    
+        for (size_t i = 0; i < inputs.size(); i++) {
+            GateId in = inputs[i];
+            bool watch_val = watched_values[i];
+            iitable[watch_val][in].push_back(new_id);
+        }        
+
+        return new_id;
+    }
+
+
     void build_implication_table(Direct_ImplicationTable& ditable,Indirect_ImplicationTable& iitable, std::unordered_map<GateId, Watch_Values>& watch_vals) const {
         size_t num_gates = m_gates.size();
         for (int val = 0; val < 2; val++) {
@@ -204,7 +244,6 @@ public:
 
             bool is_output = false;
             GateId po_data;
-
             bool a_wv = watch_vals[id].input1;
             bool b_wv = watch_vals[id].input2;
             bool id_wv = watch_vals[id].output;
@@ -215,7 +254,7 @@ public:
             ditable[id][!id_wv].emplace_back(a, a_wv);
             ditable[id][!id_wv].emplace_back(b, b_wv);
 
-            //indirect_implication
+            // if a==1&&b==1, then z==1,is not here, indirect_implication
 
             iitable[a_wv][a].push_back(id);
             iitable[b_wv][b].push_back(id);
