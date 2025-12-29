@@ -2,7 +2,7 @@
  * @file aiger_reader.hpp
  * @brief Template-based Parser of AIG
  * @author Haonan Wei
- * @author Zhufei Chu 
+ * @author Zhufei Chu
  */
 
 #include "aig.hpp"
@@ -18,20 +18,9 @@ template <typename Ntk> class aiger_reader : public lorina::aiger_reader
 {
   public:
     explicit aiger_reader(Ntk& ntk) : _ntk(ntk) {}
-    // ~aiger_reader()
-    // {
-    //     uint32_t output_id{0};
-    //     for (auto out : outputs) {
-    //         auto const lit = std::get<0>(out);
-    //         auto gate = _ntk.get_gates()[lit >> 1];
-    //         if (lit & 1) {
-    //             gate = _ntk.create_not(gate);
-    //         }
-    //         _ntk.create_po(gate);
-    //         //printf("output size %ld\n", _ntk.get_outputs().size());
-    //     }
-    // }
-    void process_outputs() const {
+
+    void process_outputs() const
+    {
         for (auto out : outputs) {
             auto const lit = std::get<0>(out);
             auto gate = _ntk.get_gates()[lit >> 1];
@@ -46,7 +35,7 @@ template <typename Ntk> class aiger_reader : public lorina::aiger_reader
                    uint64_t num_ands) const override
     {
         assert(num_latches == 0 && "This solver does not support latches");
-        
+
         _ntk.set_num_pis(static_cast<uint32_t>(num_inputs));
         _ntk.set_num_pos(static_cast<uint32_t>(num_outputs));
         _ntk.set_num_gates(static_cast<uint32_t>(num_ands));
@@ -74,7 +63,7 @@ template <typename Ntk> class aiger_reader : public lorina::aiger_reader
         }
 
         _ntk.create_and(left, right);
-        if (_ntk.get_gates().size() == _ntk.get_num_gates()+_ntk.get_num_pis() + 1) {
+        if (_ntk.get_gates().size() == _ntk.get_num_gates() + _ntk.get_num_pis() + 1) {
             process_outputs();
         }
     }
@@ -82,7 +71,7 @@ template <typename Ntk> class aiger_reader : public lorina::aiger_reader
     void on_output(unsigned index, unsigned lit) const override
     {
         (void)index;
-        
+
         outputs.emplace_back(lit, "");
     }
 

@@ -5,7 +5,6 @@ int main()
 {
     cirsat::Solver solver;
 
-    // 创建一个简单的电路
     solver.addGate("AND", 1, 2);
 
     std::vector<bool> circuit = {true, false};

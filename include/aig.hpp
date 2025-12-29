@@ -4,10 +4,10 @@
 #include <array>
 #include <cassert>
 #include <cstdint>
-#include <vector>
 #include <iostream>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 #define NULL_INDEX 0xffffffff
 
@@ -20,7 +20,7 @@ using GateId = uint32_t;
 using Direct_ImplicationTable = std::unordered_map<GateId, std::array<std::vector<std::pair<GateId, bool>>, 2>>;
 using Indirect_ImplicationTable = std::array<std::vector<std::vector<GateId>>, 2>;
 constexpr uint32_t INVALID_GATE = std::numeric_limits<uint32_t>::max();
-struct Watch_Values{
+struct Watch_Values {
     bool input1;
     bool input2;
     bool output;
@@ -31,7 +31,7 @@ struct gate {
     std::array<uint8_t, 2u> info{0, 0}; // [0]--number of fanouts; [1]--visited flag
     std::array<GateId, 2u> children{NULL_INDEX, NULL_INDEX};
     std::vector<GateId> outputs;
-    std::vector<GateId> fanins; 
+    std::vector<GateId> fanins;
     float activity = 0.0f;
 
     union {
@@ -80,7 +80,7 @@ struct gate {
 
 class aig_ntk
 {
-public:
+  public:
     aig_ntk() = default;
 
     void create_pi()
@@ -127,7 +127,7 @@ public:
     {
         return !a;
     }
-    
+
     const std::vector<GateId>& get_inputs() const
     {
         return m_inputs;
@@ -167,7 +167,7 @@ public:
     {
         return m_num_pis;
     }
-    
+
     uint32_t get_num_pos() const
     {
         return m_num_pos;
@@ -178,7 +178,7 @@ public:
         return m_num_gates;
     }
 
-    static GateId data_to_index(uint32_t data) 
+    static GateId data_to_index(uint32_t data)
     {
         return data >> 1;
     }
@@ -187,8 +187,10 @@ public:
     {
         return data & 1;
     }
-    
-    GateId create_or_learning_gate(const std::vector<GateId>& inputs,const std::vector<bool>& watched_values,Indirect_ImplicationTable& iitable,std::unordered_map<GateId, std::vector<bool>>& learn_watch_vals)
+
+    GateId create_or_learning_gate(const std::vector<GateId>& inputs, const std::vector<bool>& watched_values,
+                                   Indirect_ImplicationTable& iitable,
+                                   std::unordered_map<GateId, std::vector<bool>>& learn_watch_vals)
     {
         assert(!inputs.empty());
         assert(inputs.size() == watched_values.size());
@@ -204,8 +206,7 @@ public:
 
         node.fanins = inputs;
 
-        for (GateId in : inputs)
-        {
+        for (GateId in : inputs) {
             m_gates[in].outputs.push_back(new_id);
             m_gates[in].info[0]++;
         }
@@ -214,26 +215,27 @@ public:
 
         std::vector<bool> wv(inputs.size());
         for (size_t i = 0; i < inputs.size(); i++)
-            wv[i] = watched_values[i];  
+            wv[i] = watched_values[i];
         learn_watch_vals[new_id] = std::move(wv);
-    
+
         for (size_t i = 0; i < inputs.size(); i++) {
             GateId in = inputs[i];
             bool watch_val = watched_values[i];
             iitable[watch_val][in].push_back(new_id);
-        }        
+        }
 
         return new_id;
     }
 
-
-    void build_implication_table(Direct_ImplicationTable& ditable,Indirect_ImplicationTable& iitable, std::unordered_map<GateId, Watch_Values>& watch_vals) const {
+    void build_implication_table(Direct_ImplicationTable& ditable, Indirect_ImplicationTable& iitable,
+                                 std::unordered_map<GateId, Watch_Values>& watch_vals) const
+    {
         size_t num_gates = m_gates.size();
         for (int val = 0; val < 2; val++) {
             iitable[val].resize(num_gates);
         }
-        for (GateId id = m_inputs.size()+1; id < m_gates.size(); ++id) {
-            const gate& g = m_gates[id];            
+        for (GateId id = m_inputs.size() + 1; id < m_gates.size(); ++id) {
+            const gate& g = m_gates[id];
             GateId a = data_to_index(g.children[0]);
             GateId b = data_to_index(g.children[1]);
             bool a_neg = data_to_complement(g.children[0]);
@@ -259,11 +261,10 @@ public:
             iitable[a_wv][a].push_back(id);
             iitable[b_wv][b].push_back(id);
             iitable[id_wv][id].push_back(id);
-
         }
     }
 
-private:
+  private:
     std::vector<gate> m_gates;
     std::vector<GateId> m_inputs;
     std::vector<GateId> m_outputs;
