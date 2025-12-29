@@ -1,0 +1,24 @@
+aig 32 16 0 1 16
+64
+
+$%0(.	i0 v0
+i1 v1
+i2 v2
+i3 v3
+i4 v4
+i5 v5
+i6 v6
+i7 v7
+i8 v8
+i9 v9
+i10 v10
+i11 v11
+i12 v12
+i13 v13
+i14 v14
+i15 v15
+o0 v16.0
+c
+source.pla
+This file was written by ABC on Fri Jul 28 15:44:06 2017
+For information about AIGER format, refer to http://fmv.jku.at/aiger

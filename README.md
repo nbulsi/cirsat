@@ -12,7 +12,7 @@ electronic design automation (EDA), especially for applications in logic synthes
 
 ```bash
 # Clone the repository
-git clone https://github.com/zfchu/cirsat.git
+git clone https://github.com/nbulsi/cirsat.git
 
 # Enter the project directory
 cd cirsat
