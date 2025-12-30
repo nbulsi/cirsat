@@ -7,8 +7,10 @@
 #ifndef CIRSAT_SOLVER_HPP
 #define CIRSAT_SOLVER_HPP
 
+#include <optional>
 #include <string>
 #include <vector>
+#include <utility>
 
 namespace cirsat
 {
@@ -19,8 +21,11 @@ class Solver
     Solver();
     ~Solver();
 
-    bool solve(const std::vector<bool>& circuit);
-    void addGate(const std::string& type, int input1, int input2);
+    // Load circuit from AIGER file
+    bool load_aiger(const std::string& filename);
+
+    // Solve the loaded circuit
+    std::pair<bool, std::optional<std::vector<bool>>> solve();
 
   private:
     struct Impl;

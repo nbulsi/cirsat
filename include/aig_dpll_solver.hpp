@@ -541,7 +541,7 @@ class aig_dpll_solver
     }
 };
 
-std::pair<bool, std::optional<std::vector<bool>>> solve_aig(aig_ntk& ntk)
+inline std::pair<bool, std::optional<std::vector<bool>>> solve_aig(aig_ntk& ntk)
 {
     aig_dpll_solver solver(ntk);
     std::vector<bool> solution;
