@@ -5,12 +5,17 @@
  */
 
 #include "solver.hpp"
+#include "aig.hpp"
+#include "aig_dpll_solver.hpp"
+#include "aiger_reader.hpp"
+#include <fstream>
+#include <lorina/aiger.hpp>
 
 namespace cirsat
 {
 
 struct Solver::Impl {
-    // 具体实现细节
+    aig_ntk network;
 };
 
 Solver::Solver() : pimpl(new Impl()) {}
@@ -20,15 +25,28 @@ Solver::~Solver()
     delete pimpl;
 }
 
-bool Solver::solve(const std::vector<bool>& circuit)
+bool Solver::load_aiger(const std::string& filename)
 {
-    // 实现求解逻辑
-    return true;
+    cirsat::aiger_reader<cirsat::aig_ntk> reader(pimpl->network);
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        return false;
+    }
+
+    auto result = lorina::read_aiger(file, reader);
+    file.close();
+
+    return result == lorina::return_code::success;
 }
 
-void Solver::addGate(const std::string& type, int input1, int input2)
+aig_ntk const& Solver::network() const
 {
-    // 实现添加门的逻辑
+    return pimpl->network;
+}
+
+std::pair<bool, std::optional<std::vector<bool>>> Solver::solve()
+{
+    return cirsat::solve_aig(pimpl->network);
 }
 
 } // namespace cirsat
