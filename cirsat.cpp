@@ -24,12 +24,18 @@
  */
 
 #include "solver.hpp"
+#include "aig.hpp"
+#include "mffc_view.hpp"
+
+#include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 
-void printUsage()
+static void printUsage()
 {
     std::cout << "Usage: cirsat [command] [options]\n"
               << "\nCommands:\n"
@@ -37,7 +43,7 @@ void printUsage()
               << "\nOptions:\n"
               << "  -h, --help             Show this help message\n"
               << "  -v, --version          Show version information\n"
-              << "  --verbose              Enable verbose output\n";
+              << "  --limit <N>            Max nodes traversed when collecting an MFFC (default 100)\n";
 }
 
 int main(int argc, char* argv[])
@@ -68,10 +74,13 @@ int main(int argc, char* argv[])
         }
 
         bool verbose = false;
+        uint32_t limit = 100u;
         for (int i = 3; i < argc; i++) {
             std::string option = argv[i];
-            if (option == "--verbose") {
+            if (option == "-v" || option == "--verbose") {
                 verbose = true;
+            } else if (option == "--limit" && i + 1 < argc) {
+                limit = static_cast<uint32_t>( std::stoul( argv[++i] ) );
             }
         }
 
@@ -80,15 +89,12 @@ int main(int argc, char* argv[])
         }
 
         cirsat::Solver solver;
-
         if (!solver.load_aiger(argv[2])) {
             std::cout << "Error: Cannot open or parse file " << argv[2] << std::endl;
             return 1;
         }
 
-        // solve aig_ntk network
         auto [is_sat, solution] = solver.solve();
-
         if (is_sat) {
             std::cout << "SAT\n";
             if (verbose && solution) {
@@ -101,6 +107,31 @@ int main(int argc, char* argv[])
             std::cout << "UNSAT\n";
         }
 
+        if(verbose) {
+            // Enumerate MFFCs
+            const auto& network = solver.network();
+            const auto& gates = network.get_gates();
+            const auto& inputs = network.get_inputs();
+            const auto first_internal = static_cast<cirsat::GateId>( inputs.size() + 1u );
+            uint32_t matched = 0u;
+
+            for (cirsat::GateId root = first_internal; root < gates.size(); ++root)
+            {
+                cirsat::mffc_view view{ network, root, limit };
+                if ( view.empty() )
+                {
+                    continue;
+                }
+
+                ++matched;
+
+                if (verbose) {
+                    std::cout << "[mffc] root=g" << root << " size=" << view.size() << " leaves=" << view.num_pis() << " gates=" << view.num_gates() << "\n";
+                }
+            }
+
+            std::cout << "[mffc] count=" << matched << "\n";
+        }
         return 0;
     }
 

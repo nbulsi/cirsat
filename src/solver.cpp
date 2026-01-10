@@ -39,6 +39,11 @@ bool Solver::load_aiger(const std::string& filename)
     return result == lorina::return_code::success;
 }
 
+aig_ntk const& Solver::network() const
+{
+    return pimpl->network;
+}
+
 std::pair<bool, std::optional<std::vector<bool>>> Solver::solve()
 {
     return cirsat::solve_aig(pimpl->network);
