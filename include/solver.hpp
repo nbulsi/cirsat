@@ -9,11 +9,11 @@
 
 #include <optional>
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
 
-namespace cirsat
-{
+namespace cirsat {
+class aig_ntk; // Forward declaration
 
 class Solver
 {
@@ -22,7 +22,10 @@ class Solver
     ~Solver();
 
     // Load circuit from AIGER file
-    bool load_aiger(const std::string& filename);
+    bool load_aiger( const std::string& filename );
+
+    // Get the network
+    aig_ntk const& network() const;
 
     // Solve the loaded circuit
     std::pair<bool, std::optional<std::vector<bool>>> solve();

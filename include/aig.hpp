@@ -11,8 +11,7 @@
 
 #define NULL_INDEX 0xffffffff
 
-namespace cirsat
-{
+namespace cirsat {
 
 enum class GateType { AND, OR, NOT, NAND, NOR, XOR, XNOR, BUF, MUX, UNKNOWN };
 
@@ -28,8 +27,8 @@ struct Watch_Values {
 
 struct gate {
     GateType type = GateType::AND;
-    std::array<uint8_t, 2u> info{0, 0}; // [0]--number of fanouts; [1]--visited flag
-    std::array<GateId, 2u> children{NULL_INDEX, NULL_INDEX};
+    std::array<uint8_t, 2u> info{ 0, 0 }; // [0]--number of fanouts; [1]--visited flag
+    std::array<GateId, 2u> children{ NULL_INDEX, NULL_INDEX };
     std::vector<GateId> outputs;
     std::vector<GateId> fanins;
     float activity = 0.0f;
@@ -44,35 +43,39 @@ struct gate {
 
     gate() = default;
 
-    gate(uint32_t index, uint32_t complement) : index(index), complement(complement) {}
+    gate( uint32_t index, uint32_t complement ) : index( index ), complement( complement )
+    {
+    }
 
-    explicit gate(uint32_t data) : data(data) {}
+    explicit gate( uint32_t data ) : data( data )
+    {
+    }
 
     gate operator!() const
     {
-        return gate(data ^ 1);
+        return gate( data ^ 1 );
     }
     gate operator+() const
     {
-        return {index, 0};
+        return { index, 0 };
     }
     gate operator-() const
     {
-        return {index, 1};
+        return { index, 1 };
     }
-    gate operator^(bool complement) const
+    gate operator^( bool complement ) const
     {
-        return gate(data ^ (complement ? 1 : 0));
+        return gate( data ^ ( complement ? 1 : 0 ) );
     }
-    bool operator==(gate const& other) const
+    bool operator==( gate const& other ) const
     {
         return data == other.data;
     }
-    bool operator!=(gate const& other) const
+    bool operator!=( gate const& other ) const
     {
         return data != other.data;
     }
-    bool operator<(gate const& other) const
+    bool operator<( gate const& other ) const
     {
         return data < other.data;
     }
@@ -86,27 +89,28 @@ class aig_ntk
     void create_pi()
     {
         const auto index = m_gates.size();
-        m_gates.emplace_back(index, 0);
+        m_gates.emplace_back( index, 0 );
         auto& node = m_gates.back();
         node.children[0] = node.children[1] = index;
-        m_inputs.push_back(index);
+        m_inputs.push_back( index );
     }
 
-    void create_po(const gate& s)
+    void create_po( const gate& s )
     {
         m_gates[s.index].info[0]++;
-        m_outputs.push_back(s.data);
+        m_outputs.push_back( s.data );
     }
 
-    void create_and(const gate& a, const gate& b)
+    void create_and( const gate& a, const gate& b )
     {
         /* order inputs */
         gate left = a, right = b;
-        if (left.index > right.index) {
-            std::swap(left, right);
+        if ( left.index > right.index )
+        {
+            std::swap( left, right );
         }
 
-        assert(left.index != right.index && "AND gate cannot have same inputs");
+        assert( left.index != right.index && "AND gate cannot have same inputs" );
 
         gate node;
         node.children[0] = left.data;
@@ -115,15 +119,15 @@ class aig_ntk
         const auto index = m_gates.size();
         node.index = index;
         node.complement = 0;
-        m_gates.emplace_back(node);
+        m_gates.emplace_back( node );
 
         m_gates[left.index].info[0]++;
-        m_gates[left.index].outputs.push_back(index);
+        m_gates[left.index].outputs.push_back( index );
         m_gates[right.index].info[0]++;
-        m_gates[right.index].outputs.push_back(index);
+        m_gates[right.index].outputs.push_back( index );
     }
 
-    gate create_not(const gate& a) const
+    gate create_not( const gate& a ) const
     {
         return !a;
     }
@@ -141,26 +145,26 @@ class aig_ntk
         return m_gates;
     }
 
-    const void set_num_pis(const uint32_t& num_pis)
+    const void set_num_pis( const uint32_t& num_pis )
     {
         m_num_pis = num_pis;
-        m_inputs.reserve(num_pis);
+        m_inputs.reserve( num_pis );
     }
 
-    const void set_num_pos(const uint32_t& num_pos)
+    const void set_num_pos( const uint32_t& num_pos )
     {
         m_num_pos = num_pos;
-        m_outputs.reserve(num_pos);
+        m_outputs.reserve( num_pos );
     }
-    const void set_num_gates(const uint32_t& num_gates)
+    const void set_num_gates( const uint32_t& num_gates )
     {
         m_num_gates = num_gates;
-        m_gates.reserve(num_gates);
+        m_gates.reserve( num_gates );
     }
 
-    const void add_gate(const gate& gate)
+    const void add_gate( const gate& gate )
     {
-        m_gates.push_back(gate);
+        m_gates.push_back( gate );
     }
 
     uint32_t get_num_pis() const
@@ -178,22 +182,22 @@ class aig_ntk
         return m_num_gates;
     }
 
-    static GateId data_to_index(uint32_t data)
+    static GateId data_to_index( uint32_t data )
     {
         return data >> 1;
     }
 
-    static bool data_to_complement(uint32_t data)
+    static bool data_to_complement( uint32_t data )
     {
         return data & 1;
     }
 
-    GateId create_or_learning_gate(const std::vector<GateId>& inputs, const std::vector<bool>& watched_values,
-                                   Indirect_ImplicationTable& iitable,
-                                   std::unordered_map<GateId, std::vector<bool>>& learn_watch_vals)
+    GateId create_or_learning_gate( const std::vector<GateId>& inputs, const std::vector<bool>& watched_values,
+                                    Indirect_ImplicationTable& iitable,
+                                    std::unordered_map<GateId, std::vector<bool>>& learn_watch_vals )
     {
-        assert(!inputs.empty());
-        assert(inputs.size() == watched_values.size());
+        assert( !inputs.empty() );
+        assert( inputs.size() == watched_values.size() );
         gate node;
         node.type = GateType::OR;
 
@@ -206,40 +210,44 @@ class aig_ntk
 
         node.fanins = inputs;
 
-        for (GateId in : inputs) {
-            m_gates[in].outputs.push_back(new_id);
+        for ( GateId in : inputs )
+        {
+            m_gates[in].outputs.push_back( new_id );
             m_gates[in].info[0]++;
         }
 
-        m_gates.push_back(node);
+        m_gates.push_back( node );
 
-        std::vector<bool> wv(inputs.size());
-        for (size_t i = 0; i < inputs.size(); i++)
+        std::vector<bool> wv( inputs.size() );
+        for ( size_t i = 0; i < inputs.size(); i++ )
             wv[i] = watched_values[i];
-        learn_watch_vals[new_id] = std::move(wv);
+        learn_watch_vals[new_id] = std::move( wv );
 
-        for (size_t i = 0; i < inputs.size(); i++) {
+        for ( size_t i = 0; i < inputs.size(); i++ )
+        {
             GateId in = inputs[i];
             bool watch_val = watched_values[i];
-            iitable[watch_val][in].push_back(new_id);
+            iitable[watch_val][in].push_back( new_id );
         }
 
         return new_id;
     }
 
-    void build_implication_table(Direct_ImplicationTable& ditable, Indirect_ImplicationTable& iitable,
-                                 std::unordered_map<GateId, Watch_Values>& watch_vals) const
+    void build_implication_table( Direct_ImplicationTable& ditable, Indirect_ImplicationTable& iitable,
+                                  std::unordered_map<GateId, Watch_Values>& watch_vals ) const
     {
         size_t num_gates = m_gates.size();
-        for (int val = 0; val < 2; val++) {
-            iitable[val].resize(num_gates);
+        for ( int val = 0; val < 2; val++ )
+        {
+            iitable[val].resize( num_gates );
         }
-        for (GateId id = m_inputs.size() + 1; id < m_gates.size(); ++id) {
+        for ( GateId id = m_inputs.size() + 1; id < m_gates.size(); ++id )
+        {
             const gate& g = m_gates[id];
-            GateId a = data_to_index(g.children[0]);
-            GateId b = data_to_index(g.children[1]);
-            bool a_neg = data_to_complement(g.children[0]);
-            bool b_neg = data_to_complement(g.children[1]);
+            GateId a = data_to_index( g.children[0] );
+            GateId b = data_to_index( g.children[1] );
+            bool a_neg = data_to_complement( g.children[0] );
+            bool b_neg = data_to_complement( g.children[1] );
             watch_vals[id].input1 = !a_neg;
             watch_vals[id].input2 = !b_neg;
             watch_vals[id].output = false;
@@ -250,17 +258,17 @@ class aig_ntk
             bool b_wv = watch_vals[id].input2;
             bool id_wv = watch_vals[id].output;
             // if a/b==0, then z = 0
-            ditable[a][!a_wv].emplace_back(id, id_wv);
-            ditable[b][!b_wv].emplace_back(id, id_wv);
+            ditable[a][!a_wv].emplace_back( id, id_wv );
+            ditable[b][!b_wv].emplace_back( id, id_wv );
             // if z==1, then a==1&b==1
-            ditable[id][!id_wv].emplace_back(a, a_wv);
-            ditable[id][!id_wv].emplace_back(b, b_wv);
+            ditable[id][!id_wv].emplace_back( a, a_wv );
+            ditable[id][!id_wv].emplace_back( b, b_wv );
 
             // if a==1&&b==1, then z==1,is not here, indirect_implication
 
-            iitable[a_wv][a].push_back(id);
-            iitable[b_wv][b].push_back(id);
-            iitable[id_wv][id].push_back(id);
+            iitable[a_wv][a].push_back( id );
+            iitable[b_wv][b].push_back( id );
+            iitable[id_wv][id].push_back( id );
         }
     }
 
@@ -268,9 +276,9 @@ class aig_ntk
     std::vector<gate> m_gates;
     std::vector<GateId> m_inputs;
     std::vector<GateId> m_outputs;
-    uint32_t m_num_pis{0u};
-    uint32_t m_num_pos{0u};
-    uint32_t m_num_gates{0u};
+    uint32_t m_num_pis{ 0u };
+    uint32_t m_num_pos{ 0u };
+    uint32_t m_num_gates{ 0u };
 };
 
 } // namespace cirsat
