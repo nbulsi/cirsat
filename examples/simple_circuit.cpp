@@ -10,8 +10,9 @@ int main()
     // Represents a simple AND gate: Output = Input1 AND Input2
     std::string filename = "simple_test.aag";
     {
-        std::ofstream file(filename);
-        if (!file) {
+        std::ofstream file( filename );
+        if ( !file )
+        {
             std::cerr << "Error creating temporary file" << std::endl;
             return 1;
         }
@@ -29,27 +30,30 @@ int main()
     cirsat::Solver solver;
 
     std::cout << "Loading circuit from " << filename << "..." << std::endl;
-    if (!solver.load_aiger(filename)) {
+    if ( !solver.load_aiger( filename ) )
+    {
         std::cerr << "Failed to load circuit." << std::endl;
-        std::remove(filename.c_str());
+        std::remove( filename.c_str() );
         return 1;
     }
 
     std::cout << "Solving circuit..." << std::endl;
     auto [is_sat, solution] = solver.solve();
 
-    std::cout << "Result: " << (is_sat ? "SAT" : "UNSAT") << std::endl;
+    std::cout << "Result: " << ( is_sat ? "SAT" : "UNSAT" ) << std::endl;
 
-    if (is_sat && solution) {
+    if ( is_sat && solution )
+    {
         std::cout << "Assignment:" << std::endl;
         const auto& assignment = *solution;
-        for (size_t i = 0; i < assignment.size(); ++i) {
-            std::cout << "Input " << i << ": " << (assignment[i] ? "1" : "0") << std::endl;
+        for ( size_t i = 0; i < assignment.size(); ++i )
+        {
+            std::cout << "Input " << i << ": " << ( assignment[i] ? "1" : "0" ) << std::endl;
         }
     }
 
     // Cleanup
-    std::remove(filename.c_str());
+    std::remove( filename.c_str() );
 
     return 0;
 }

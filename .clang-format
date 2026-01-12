@@ -9,29 +9,25 @@ BraceWrapping:
   AfterFunction: true      
   AfterClass: true        
   AfterNamespace: false   
-  AfterControlStatement: false
-  BeforeCatch: false     
-  BeforeElse: false
+  AfterControlStatement: true
+  BeforeCatch: true     
+  BeforeElse: true
 
 AlignAfterOpenBracket: Align
 PointerAlignment: Left
 SpaceBeforeParens: ControlStatements
 NamespaceIndentation: None
 
-AlignAfterOpenBracket: Align
 AlignOperands: true
 AlignTrailingComments: true
 
-AllowShortFunctionsOnASingleLine: Empty
-BreakBeforeBraces: Linux
+AllowShortFunctionsOnASingleLine: None
 BreakConstructorInitializers: BeforeColon
 
 SpaceAfterCStyleCast: false
-SpaceBeforeParens: ControlStatements
-SpaceInEmptyParentheses: false
-SpacesInParentheses: false
+SpaceInEmptyParentheses: false 
+SpacesInParentheses: true
 
-PointerAlignment: Left
 SortIncludes: true
 FixNamespaceComments: true
 MaxEmptyLinesToKeep: 1
