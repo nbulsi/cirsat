@@ -28,6 +28,7 @@
 #include "solver.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -43,6 +44,7 @@ static void printUsage()
               << "\nOptions:\n"
               << "  -h, --help             Show this help message\n"
               << "  -v, --version          Show version information\n"
+              << "  solve ... -v           Print total and solve times\n"
               << "  --limit <N>            Max nodes traversed when collecting an MFFC (default 100)\n";
 }
 
@@ -79,6 +81,7 @@ int main( int argc, char* argv[] )
         }
 
         bool verbose = false;
+        bool show_time = false;
         uint32_t limit = 100u;
         for ( int i = 3; i < argc; i++ )
         {
@@ -86,6 +89,10 @@ int main( int argc, char* argv[] )
             if ( option == "--verbose" )
             {
                 verbose = true;
+            }
+            else if ( option == "-v" )
+            {
+                show_time = true;
             }
             else if ( option == "--limit" && i + 1 < argc )
             {
@@ -98,6 +105,8 @@ int main( int argc, char* argv[] )
             std::cout << "Processing circuit file: " << argv[2] << std::endl;
         }
 
+        using clock = std::chrono::steady_clock;
+        const auto total_start = clock::now();
         cirsat::Solver solver;
         if ( !solver.load_aiger( argv[2] ) )
         {
@@ -105,11 +114,13 @@ int main( int argc, char* argv[] )
             return 1;
         }
 
+        const auto solve_start = clock::now();
         auto [is_sat, solution] = solver.solve();
+        const auto solve_end = clock::now();
         if ( is_sat )
         {
             std::cout << "SAT\n";
-            if ( verbose && solution )
+            if ( solution )
             {
                 std::cout << "Solution:\n";
                 for ( size_t i = 0; i < solution->size(); ++i )
@@ -121,6 +132,15 @@ int main( int argc, char* argv[] )
         else
         {
             std::cout << "UNSAT\n";
+        }
+
+        if ( show_time )
+        {
+            const auto total_end = clock::now();
+            using std::chrono::duration_cast;
+            using std::chrono::microseconds;
+            std::cout << "total time: " << duration_cast<microseconds>( total_end - total_start ).count() << " us\n";
+            std::cout << "solve time: " << duration_cast<microseconds>( solve_end - solve_start ).count() << " us\n";
         }
 
         if ( verbose )
