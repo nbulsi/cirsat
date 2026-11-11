@@ -1,10 +1,12 @@
 #ifndef CIRSAT_AIG_HPP
 #define CIRSAT_AIG_HPP
 
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <cstdint>
 #include <iostream>
+#include <limits>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -110,7 +112,6 @@ class aig_ntk
             std::swap( left, right );
         }
 
-        assert( left.index != right.index && "AND gate cannot have same inputs" );
 
         gate node;
         node.children[0] = left.data;
@@ -194,7 +195,8 @@ class aig_ntk
 
     GateId create_or_learning_gate( const std::vector<GateId>& inputs, const std::vector<bool>& watched_values,
                                     Indirect_ImplicationTable& iitable,
-                                    std::unordered_map<GateId, std::vector<bool>>& learn_watch_vals )
+                                    std::unordered_map<GateId, std::vector<bool>>& learn_watch_vals,
+                                    std::unordered_map<GateId, std::vector<bool>>& learn_watch_points )
     {
         assert( !inputs.empty() );
         assert( inputs.size() == watched_values.size() );
@@ -210,25 +212,16 @@ class aig_ntk
 
         node.fanins = inputs;
 
-        for ( GateId in : inputs )
-        {
-            m_gates[in].outputs.push_back( new_id );
-            m_gates[in].info[0]++;
-        }
-
         m_gates.push_back( node );
+        learn_watch_vals[new_id] = watched_values;
 
-        std::vector<bool> wv( inputs.size() );
-        for ( size_t i = 0; i < inputs.size(); i++ )
-            wv[i] = watched_values[i];
-        learn_watch_vals[new_id] = std::move( wv );
-
-        for ( size_t i = 0; i < inputs.size(); i++ )
+        std::vector<bool> points( inputs.size(), false );
+        for ( size_t i = 0; i < std::min<size_t>( 2, inputs.size() ); ++i )
         {
-            GateId in = inputs[i];
-            bool watch_val = watched_values[i];
-            iitable[watch_val][in].push_back( new_id );
+            points[i] = true;
+            iitable[watched_values[i]][inputs[i]].push_back( new_id );
         }
+        learn_watch_points[new_id] = std::move( points );
 
         return new_id;
     }
